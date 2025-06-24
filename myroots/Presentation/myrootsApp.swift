@@ -15,3 +15,7 @@ struct myrootsApp: App {
         }
     }
 }
+
+#Preview{
+    SplashView()
+}
