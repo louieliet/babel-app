@@ -20,4 +20,12 @@ final class OnboardingViewModel: ObservableObject {
     func skip() {
         isCompleted = true
     }
+    
+    /// Permite actualizar el paso actual desde la vista (por ejemplo, cuando el usuario desliza en el `TabView`).
+    /// Mantiene el encapsulamiento evitando exponer el setter directamente.
+    /// - Parameter step: Índice del paso a mostrar.
+    func setCurrentStep(_ step: Int) {
+        guard step >= 0 && step < totalSteps else { return }
+        currentStep = step
+    }
 } 

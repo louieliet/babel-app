@@ -8,86 +8,69 @@
 import SwiftUI
 
 struct PersonalityTestView: View {
-    @State private var selectedPersonality: PersonalityType? = nil
-    @State private var showQuickTest = false
-    @State private var animateContent = false
-    @State private var showMainApp = false
-    
+    @ObservedObject var viewModel: PersonalityTestViewModel
+    var onTestComplete: (() -> Void)? = nil
+
     var body: some View {
-        if showMainApp {
-            // Aquí iría la vista principal de la app
-            Text("¡Bienvenido a Babel!")
-                .font(.largeTitle)
-                .foregroundColor(Color.babelPrimary)
-        } else if showQuickTest {
+        if viewModel.showQuickTest {
             QuickPersonalityTestView(
                 onTestComplete: { personality in
-                    selectedPersonality = personality
-                    showQuickTest = false
+                    viewModel.choosePersonality(personality)
+                    viewModel.showQuickTest = false
                 }
             )
         } else {
             ZStack {
-                // Fondo
                 LinearGradient(
                     colors: [Color.babelLight, Color.white],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 ScrollView {
                     VStack(spacing: 32) {
                         // Header
                         VStack(spacing: 16) {
                             TreeLogoView(size: 50)
-                                .opacity(animateContent ? 1.0 : 0)
-                                .animation(.easeOut(duration: 0.8).delay(0.2), value: animateContent)
-                            
+                                .opacity(viewModel.isFinished ? 0 : 1)
+                                .animation(.easeOut(duration: 0.8).delay(0.2), value: viewModel.isFinished)
                             Text("¿Cómo prefieres que te acompañe?")
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                                 .foregroundColor(Color.babelDark)
                                 .multilineTextAlignment(.center)
-                                .opacity(animateContent ? 1.0 : 0)
-                                .animation(.easeOut(duration: 0.8).delay(0.4), value: animateContent)
-                            
+                                .opacity(1.0)
                             Text("Elige la personalidad que mejor se adapte a ti o realiza nuestro test rápido")
                                 .font(.system(size: 16, weight: .regular))
                                 .foregroundColor(Color.babelDark.opacity(0.7))
                                 .multilineTextAlignment(.center)
-                                .opacity(animateContent ? 1.0 : 0)
-                                .animation(.easeOut(duration: 0.8).delay(0.6), value: animateContent)
+                                .opacity(1.0)
                         }
                         .padding(.top, 20)
                         .padding(.horizontal, 30)
-                        
+
                         // Test rápido option
                         Button(action: {
-                            showQuickTest = true
+                            viewModel.startQuickTest()
                         }) {
                             HStack(spacing: 16) {
                                 ZStack {
                                     Circle()
                                         .fill(Color.babelAccent.opacity(0.2))
                                         .frame(width: 60, height: 60)
-                                    
                                     Image(systemName: "brain.head.profile")
                                         .font(.system(size: 24, weight: .medium))
                                         .foregroundColor(Color.babelPrimary)
                                 }
-                                
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Realiza test rápido")
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundColor(Color.babelDark)
-                                    
                                     Text("5 preguntas para conocerte mejor")
                                         .font(.system(size: 14, weight: .regular))
                                         .foregroundColor(Color.babelDark.opacity(0.6))
                                 }
-                                
                                 Spacer()
-                                
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 16, weight: .medium))
                                     .foregroundColor(Color.babelPrimary)
@@ -101,50 +84,46 @@ struct PersonalityTestView: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                         .padding(.horizontal, 30)
-                        .opacity(animateContent ? 1.0 : 0)
-                        .animation(.easeOut(duration: 0.8).delay(0.8), value: animateContent)
-                        
+                        .opacity(1.0)
+
                         // Separador
                         HStack {
                             Rectangle()
                                 .fill(Color.babelMedium.opacity(0.5))
                                 .frame(height: 1)
-                            
                             Text("o elige")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color.babelDark.opacity(0.6))
                                 .padding(.horizontal, 16)
-                            
                             Rectangle()
                                 .fill(Color.babelMedium.opacity(0.5))
                                 .frame(height: 1)
                         }
                         .padding(.horizontal, 30)
-                        .opacity(animateContent ? 1.0 : 0)
-                        .animation(.easeOut(duration: 0.8).delay(1.0), value: animateContent)
-                        
+                        .opacity(1.0)
+
                         // Personalidades disponibles
                         LazyVGrid(columns: [
                             GridItem(.flexible()),
                             GridItem(.flexible())
                         ], spacing: 16) {
-                            ForEach(PersonalityType.allCases, id: \.self) { personality in
+                            ForEach(PersonalityType.allCases, id: \ .self) { personality in
                                 PersonalityCard(
                                     personality: personality,
-                                    isSelected: selectedPersonality == personality,
+                                    isSelected: viewModel.selectedPersonality == personality,
                                     onTap: {
-                                        selectedPersonality = personality
+                                        viewModel.choosePersonality(personality)
                                     }
                                 )
                             }
                         }
                         .padding(.horizontal, 30)
-                        .opacity(animateContent ? 1.0 : 0)
-                        .animation(.easeOut(duration: 0.8).delay(1.2), value: animateContent)
-                        
+                        .opacity(1.0)
+
                         // Botón continuar
                         Button(action: {
-                            showMainApp = true
+                            viewModel.finish()
+                            onTestComplete?()
                         }) {
                             Text("Comenzar con Babel")
                                 .font(.system(size: 18, weight: .semibold))
@@ -154,20 +133,20 @@ struct PersonalityTestView: View {
                                 .background(
                                     RoundedRectangle(cornerRadius: 28)
                                         .fill(Color.babelPrimary)
-                                        .opacity(selectedPersonality != nil ? 1.0 : 0.6)
+                                        .opacity(viewModel.selectedPersonality != nil ? 1.0 : 0.6)
                                 )
                         }
-                        .disabled(selectedPersonality == nil)
+                        .disabled(viewModel.selectedPersonality == nil)
                         .padding(.horizontal, 30)
                         .padding(.bottom, 30)
-                        .opacity(animateContent ? 1.0 : 0)
-                        .animation(.easeOut(duration: 0.8).delay(1.4), value: animateContent)
+                        .opacity(1.0)
                     }
                 }
             }
             .onAppear {
-                animateContent = true
+                // Si necesitas animaciones, puedes usar viewModel
             }
+            .navigationBarBackButtonHidden(true)
         }
     }
 }
@@ -438,5 +417,5 @@ struct TestQuestion {
 }
 
 #Preview {
-    PersonalityTestView()
+    PersonalityTestView(viewModel: PersonalityTestViewModel())
 }

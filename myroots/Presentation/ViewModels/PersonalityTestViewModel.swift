@@ -1,19 +1,12 @@
 import Foundation
 import SwiftUI
 
-enum PersonalityTypeOption: String, CaseIterable {
-    case analytical
-    case dominant
-    case practical
-    case social
-}
-
 final class PersonalityTestViewModel: ObservableObject {
-    @Published var selectedPersonality: PersonalityTypeOption?
+    @Published var selectedPersonality: PersonalityType?
     @Published var showQuickTest: Bool = false
     @Published var isFinished: Bool = false
     
-    func choosePersonality(_ type: PersonalityTypeOption) {
+    func choosePersonality(_ type: PersonalityType) {
         selectedPersonality = type
     }
     

@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    @State private var currentStep = 0
-    @State private var showAvatarCustomization = false
+    @ObservedObject var viewModel: OnboardingViewModel
+    var onFinish: (() -> Void)? = nil
     
     private let onboardingSteps = [
         OnboardingStep(
@@ -33,78 +33,73 @@ struct OnboardingView: View {
     ]
     
     var body: some View {
-        if showAvatarCustomization {
-            AvatarCustomizationView()
-        } else {
-            ZStack {
-                // Fondo con gradiente
-                LinearGradient(
-                    colors: [Color.babelLight, Color.white, Color.babelMedium.opacity(0.1)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+        ZStack {
+            // Fondo con gradiente
+            LinearGradient(
+                colors: [Color.babelLight, Color.white, Color.babelMedium.opacity(0.1)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Barra de progreso
+                OnboardingProgressBar(
+                    currentStep: viewModel.currentStep,
+                    totalSteps: onboardingSteps.count
                 )
-                .ignoresSafeArea()
+                .padding(.top, 60)
+                .padding(.horizontal, 40)
                 
-                VStack(spacing: 0) {
-                    // Barra de progreso
-                    OnboardingProgressBar(
-                        currentStep: currentStep,
-                        totalSteps: onboardingSteps.count
-                    )
-                    .padding(.top, 60)
-                    .padding(.horizontal, 40)
-                    
-                    // Contenido principal
-                    TabView(selection: $currentStep) {
-                        ForEach(0..<onboardingSteps.count, id: \.self) { index in
-                            OnboardingStepView(step: onboardingSteps[index])
-                                .tag(index)
-                        }
+                // Contenido principal
+                TabView(selection: Binding(
+                    get: { viewModel.currentStep },
+                    set: { viewModel.setCurrentStep($0) }
+                )) {
+                    ForEach(0..<onboardingSteps.count, id: \.self) { index in
+                        OnboardingStepView(step: onboardingSteps[index])
+                            .tag(index)
                     }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                    .animation(.easeInOut(duration: 0.5), value: currentStep)
-                    
-                    // Botones de navegación
-                    VStack(spacing: 16) {
-                        // Botón principal
-                        Button(action: {
-                            nextStep()
-                        }) {
-                            Text(currentStep == onboardingSteps.count - 1 ? "Comenzar" : "Continuar")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 56)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 28)
-                                        .fill(Color.babelPrimary)
-                                )
-                        }
-                        
-                        // Botón saltar (solo en los primeros pasos)
-                        if currentStep < onboardingSteps.count - 1 {
-                            Button("Saltar") {
-                                showAvatarCustomization = true
-                            }
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Color.babelDark.opacity(0.6))
-                        }
-                    }
-                    .padding(.horizontal, 40)
-                    .padding(.bottom, 50)
                 }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                .animation(.easeInOut(duration: 0.5), value: viewModel.currentStep)
+                
+                // Botones de navegación
+                VStack(spacing: 16) {
+                    // Botón principal
+                    Button(action: {
+                        viewModel.nextStep()
+                    }) {
+                        Text(viewModel.currentStep == onboardingSteps.count - 1 ? "Comenzar" : "Continuar")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                RoundedRectangle(cornerRadius: 28)
+                                    .fill(Color.babelPrimary)
+                            )
+                    }
+                    
+                    // Botón saltar (solo en los primeros pasos)
+                    if viewModel.currentStep < onboardingSteps.count - 1 {
+                        Button("Saltar") {
+                            viewModel.skip()
+                        }
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color.babelDark.opacity(0.6))
+                    }
+                }
+                .padding(.horizontal, 40)
+                .padding(.bottom, 50)
             }
         }
-    }
-    
-    private func nextStep() {
-        if currentStep < onboardingSteps.count - 1 {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                currentStep += 1
+        .onReceive(viewModel.$isCompleted) { finished in
+            if finished {
+                onFinish?()
             }
-        } else {
-            showAvatarCustomization = true
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 
@@ -213,5 +208,5 @@ struct OnboardingProgressBar: View {
 }
 
 #Preview {
-    OnboardingView()
+    OnboardingView(viewModel: OnboardingViewModel(totalSteps: 3))
 }

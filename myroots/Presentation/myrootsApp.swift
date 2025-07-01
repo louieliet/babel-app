@@ -16,6 +16,6 @@ struct myrootsApp: App {
     }
 }
 
-#Preview{
-    SplashView()
+#Preview {
+    RootCoordinatorView()
 }
