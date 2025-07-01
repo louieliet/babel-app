@@ -149,7 +149,18 @@ struct HomeView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24)
-                            .fill(.ultraThinMaterial)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.babelLight.opacity(0.9),
+                                        Color.white.opacity(0.95),
+                                        Color.babelMedium.opacity(0.1)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: Color.babelMedium.opacity(0.2), radius: 8, x: 0, y: 4)
                     )
                     .padding(.horizontal, 20)
                     
@@ -198,9 +209,11 @@ struct HomeView: View {
                 Spacer()
                 TabBarView(selectedTab: $viewModel.selectedTab)
             }
+            .ignoresSafeArea(.container, edges: .bottom)
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarHidden(true)
+        .ignoresSafeArea(.container, edges: .bottom)
         .sheet(isPresented: $showReflectionInput) {
             ReflectionInputView(reflection: $dailyReflection)
         }
@@ -254,14 +267,25 @@ struct QuickActionCard: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.babelLight.opacity(0.2), lineWidth: 1)
-                    )
-            )
+                         .background(
+                 RoundedRectangle(cornerRadius: 16)
+                     .fill(
+                         LinearGradient(
+                             gradient: Gradient(colors: [
+                                 Color.white.opacity(0.95),
+                                 Color.babelLight.opacity(0.8),
+                                 Color.babelMedium.opacity(0.08)
+                             ]),
+                             startPoint: .topLeading,
+                             endPoint: .bottomTrailing
+                         )
+                     )
+                     .overlay(
+                         RoundedRectangle(cornerRadius: 16)
+                             .stroke(Color.babelMedium.opacity(0.2), lineWidth: 1)
+                     )
+                     .shadow(color: Color.babelMedium.opacity(0.15), radius: 6, x: 0, y: 3)
+             )
         }
     }
 }
@@ -346,32 +370,38 @@ struct TabBarView: View {
                 Button(action: {
                     selectedTab = tab
                 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(selectedTab == tab ? Color.babelPrimary : Color.babelMedium)
-                        Text(tab.rawValue)
-                            .font(.caption2)
-                            .foregroundColor(selectedTab == tab ? Color.babelPrimary : Color.babelMedium)
-                    }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
+                    Image(systemName: tab.icon)
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(Color.babelDark)
+                        .opacity(selectedTab == tab ? 1.0 : 0.4)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
                 }
                 Spacer()
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 6)
-        .padding(.bottom, 18)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 28)
         .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28)
-                        .stroke(Color.babelLight.opacity(0.3), lineWidth: 1)
+            UnevenRoundedRectangle(
+                topLeadingRadius: 24,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 24
+            )
+            .fill(Color.white)
+            .overlay(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 24,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 24
                 )
+                .stroke(Color.babelMedium.opacity(0.15), lineWidth: 1)
+            )
+            .shadow(color: Color.babelMedium.opacity(0.08), radius: 12, x: 0, y: -4)
         )
-        .padding(.horizontal, 24)
     }
 } 
 
