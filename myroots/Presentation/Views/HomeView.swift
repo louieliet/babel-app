@@ -250,7 +250,7 @@ struct HomeView: View {
                             )
                             .shadow(color: Color.babelMedium.opacity(0.2), radius: 8, x: 0, y: 4)
                     )
-                    .scaleEffect(breathingScale * 0.99 + 0.01) // Breathing effect sutil
+
                     .padding(.horizontal, 20)
                     .opacity(showContent ? 1 : 0)
                     .offset(y: showContent ? 0 : 30)
